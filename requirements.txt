@@ -1,0 +1,11 @@
+# Requirements for the audio processing and visualization project
+streamlit
+torch
+torchaudio
+numpy
+matplotlib
+seaborn
+yt-dlp
+sounddevice
+scipy
+ffmpeg-python
