@@ -1,80 +1,101 @@
-🎙️ TIMIT Gerçek Zamanlı Cinsiyet Tanıma Sistemi
+# 🎙️ TIMIT Gerçek Zamanlı Cinsiyet Tanıma Sistemi
 
-TIMIT veri seti üzerinde eğitilmiş ECAPA-TDNN mimarisini kullanan, gürültülü ortamlarda ve gerçek zamanlı (Real-Time) çalışabilen uçtan uca bir ses analiz sistemidir
-🌟 Temel Özellikler
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-red?style=for-the-badge&logo=pytorch)
+![Status](https://img.shields.io/badge/Performans-%%98.81_Accuracy-success?style=for-the-badge)
 
-Canlı Mikrofon Analizi: Asenkron işleme (threading) sayesinde 200ms'nin altında gecikme ile anlık cinsiyet tahmini.
+TIMIT veri seti üzerinde eğitilmiş, gürültüye dayanıklı **ECAPA-TDNN** mimarisini kullanan uçtan uca bir ses analiz sistemidir.
 
-(ECAPA-TDNN):Channel Attention mekanizması ile gürültülü ortamlarda yüksek başarı.
+---
 
-Akış Simülasyonu (Senaryo 2): YouTube veya uzun ses kayıtları üzerinde konuşmacı değişimi (Speaker Diarization benzeri) ve zaman çizelgesi analizi.
+## 📊 1. Veri Analizi ve EDA (Exploratory Data Analysis)
 
-Sessizlik Tespiti (VAD): Enerji tabanlı filtreleme ile sessiz anlarda işlemciyi yormaz ve hatalı tahminleri önler.
+Model geliştirmeye başlamadan önce veri seti üzerinde kapsamlı bir analiz yapılmıştır.
 
-Modern Arayüz: Streamlit ile geliştirilmiş, parametreleri dinamik olarak değiştirilebilen profesyonel kontrol paneli.
+### A. Sınıf Dağılımı
+TIMIT veri seti doğası gereği dengesizdir (%70 Erkek, %30 Kadın). Bu durum, eğitim sırasında **WeightedRandomSampler** kullanılarak çözülmüştür.
 
-🛠️ Teknoloji Stack
+<p align="center">
+  <img src="assets/data_distribution.png" width="45%" alt="Veri Dağılımı">
+  <img src="assets/duration_dist.png" width="45%" alt="Süre Histogramı">
+</p>
 
-Yapay Zeka: PyTorch, Torchaudio
+*Grafik 1: Eğitim ve Test setlerindeki cinsiyet dağılımı. Grafik 2: Ses dosyalarının süre histogramı (Genellikle 3-4 saniye aralığında yoğunlaşmıştır).*
 
-Model: ECAPA-TDNN (Emphasized Channel Attention, Propagation and Aggregation)
+---
 
-Arayüz: Streamlit
+## 📈 2. Eğitim Süreci ve Performans (Learning Curves)
 
-Sinyal İşleme: NumPy, SciPy, SoundDevice
+Model, 15 Epoch boyunca **AdamW** optimizasyonu ve **Cosine Annealing** öğrenme oranı planlayıcısı ile eğitilmiştir.
 
-Veri Yönetimi: yt-dlp, FFmpeg
+### Eğitim Metrikleri
+Aşağıdaki grafiklerde görüldüğü üzere, model **7. Epoch** civarında kararlı hale gelmiş ve **%98** doğruluk bandına oturmuştur. Overfitting (aşırı öğrenme) belirtisi görülmemektedir.
 
-⚙️ Kurulum
+<p align="center">
+  <img src="assets/accuracy_curve.png" width="80%" alt="Doğruluk Eğrisi">
+</p>
+<p align="center">
+  <img src="assets/loss_curve.png" width="80%" alt="Kayıp Eğrisi">
+</p>
 
-Projeyi yerel makinenizde çalıştırmak için aşağıdaki adımları izleyin.
+### Test Sonuçları (Confusion Matrix)
+Model, hiç görmediği **1344 adet test ses dosyasında** değerlendirilmiş ve aşağıdaki sonuçlar elde edilmiştir:
 
-1. Gerekli Kütüphaneleri Yükleyin
+| Metrik | Değer |
+| :--- | :--- |
+| **Genel Doğruluk** | **%98.81** |
+| F1-Skoru (Erkek) | 0.991 |
+| F1-Skoru (Kadın) | 0.982 |
 
-Tercihen temiz bir Python ortamında (Anaconda veya venv) çalışın.
+<p align="center">
+  <img src="assets/confusion_matrix.png" width="50%" alt="Confusion Matrix">
+</p>
 
+*Model sadece 16 adet hatalı tahmin yapmıştır.*
+
+---
+
+## 🧠 3. Model Mimarisi: ECAPA-TDNN
+
+Sistemin kalbinde, hoparlör ve cinsiyet tanıma görevlerinde endüstri standardı (SOTA) kabul edilen **ECAPA-TDNN (Emphasized Channel Attention, Propagation and Aggregation)** mimarisi yatmaktadır. Bu mimari, basit CNN'lere göre konuşmacı özelliklerini (embedding) çok daha gürbüz bir şekilde çıkarır.
+
+### Temel Bileşenler
+
+1.  **TDNN (Time Delay Neural Network):**
+    * Klasik 2D-CNN'lerin aksine, ses sinyalini bir zaman serisi olarak işler (1D Konvolüsyon).
+    * Genişletilmiş (Dilated) konvolüsyonlar sayesinde, model sadece anlık sesi değil, geniş bir zamansal bağlamı (temporal context) görerek karar verir.
+
+2.  **SE-Res2Net Blokları (Kanal Dikkati):**
+    * **Res2Net:** Özellikleri farklı ölçeklerde işleyerek hem ince (tiz sesler) hem kaba (pes sesler) detayları yakalar.
+    * **Squeeze-and-Excitation (SE):** Dinamik bir dikkat mekanizmasıdır. Model, her bir frekans kanalının önemini anlık olarak hesaplar. Örneğin, arka planda gürültü varsa o frekansları baskılar, insan sesinin olduğu kanalları güçlendirir.
+
+3.  **Çok Ölçekli Özellik Birleştirme (Aggregation):**
+    * Modelin farklı derinlikteki katmanlarından gelen çıktılar birleştirilir (Concatenation). Böylece hem sığ katmanlardaki basit özellikler hem de derin katmanlardaki soyut özellikler son kararda etkili olur.
+
+4.  **ASP (Attentive Statistics Pooling):**
+    * Değişken uzunluktaki ses kliplerini (3sn, 5sn, 10sn) sabit boyutlu bir vektöre indirger.
+    * Standart ortalama yerine **Dikkat (Attention)** ağırlıklı ortalama alır. Sessiz veya gürültülü karelere düşük ağırlık vererek modelin sadece aktif konuşmaya odaklanmasını sağlar.
+
+<p align="center">
+  <img src="assets/waveform_sample.png" width="80%" alt="Sinyal Örneği">
+</p>
+
+---
+
+## 🚀 Kurulum
+
+```bash
 pip install -r requirements.txt
+# Windows için ffmpeg.exe dosyasını proje klasörüne ekleyin.
+```
 
+## ▶️ Çalıştırma
 
-2. FFmpeg Kurulumu
-
-Ses işleme ve YouTube indirmeleri için sisteminizde FFmpeg yüklü olmalıdır.
-
-Windows: ffmpeg.exe dosyasını indirin ve projenin ana klasörüne (app.py yanına) koyun.
-
-Linux: sudo apt-get install ffmpeg
-
-Mac: brew install ffmpeg
-
-🚀 Kullanım
-
-1. Uygulamayı Başlatma
-
-Ana kontrol panelini açmak için terminale şu kodu yazın:
-
+```bash
 streamlit run app.py
+```
 
+---
 
-Otomatik olarak tarayıcınızda http://localhost:8501 adresi açılacaktır.
-
-2. Test Verisi Oluşturma (Senaryo 2 İçin)
-
-Modelin konuşmacı değişimlerine (Erkek -> Kadın) tepkisini ölçmek için otomatik test verisi oluşturucu scripti çalıştırın. Bu script, Steve Jobs, Emma Watson gibi net sesleri indirip birleştirir.
-
-python prepare_data.py
-
-
-Bu işlem sonunda klasörünüzde scenario2_final.wav dosyası oluşacaktır.
-
-Uygulamada "Senaryo 2: Akış Simülasyonu" sekmesine gelip bu dosyayı yükleyerek testi başlatabilirsiniz.
-
-📂 Dosya Yapısı
-
-TIMIT-Gender-Recognition/
-│
-├── app.py                  # Ana Uygulama Kodu (Frontend & Backend)
-├── prepare_data.py         # Test Verisi Hazırlama Scripti (YouTube Downloader)
-├── best_model_ecapa.pth    # Eğitilmiş Model Ağırlıkları
-├── requirements.txt        # Gerekli Python Kütüphaneleri
-├── ffmpeg.exe              # Ses İşleme Aracı (Windows için gereklidir)
-└── README.md               # Proje Dokümantasyonu
+## 👨‍💻 Geliştirici Notları
+Bu proje, **[Adınız Soyadınız]** tarafından Case Study kapsamında; veri ön işleme, model eğitimi, hiperparametre optimizasyonu ve gerçek zamanlı dağıtım (deployment) aşamalarını kapsayacak şekilde geliştirilmiştir.
