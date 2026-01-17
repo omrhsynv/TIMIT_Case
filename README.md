@@ -2,8 +2,38 @@
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-red?style=for-the-badge&logo=pytorch)
+![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B?style=for-the-badge&logo=streamlit)
+![Status](https://img.shields.io/badge/Durum-Production%20Ready-success?style=for-the-badge)
 
-TIMIT veri seti üzerinde eğitilmiş, gürültüye dayanıklı **ECAPA-TDNN** mimarisini kullanan uçtan uca bir ses analiz sistemidir.
+TIMIT veri seti üzerinde eğitilmiş, gürültüye dayanıklı **ECAPA-TDNN** mimarisini kullanan uçtan uca bir ses analiz sistemidir. Bu proje, sadece bir model eğitimi değil; asenkron ses işleme, sessizlik tespiti (VAD) ve akış simülasyonu içeren tam kapsamlı bir yapay zeka mühendisliği çalışmasıdır.
+
+---
+
+## 📂 Dosya ve Klasör Yapısı
+
+Proje, "Clean Code" prensiplerine uygun olarak modüler bir yapıda düzenlenmiştir. Aşağıda her bir dosyanın amacı detaylandırılmıştır:
+
+```text
+TIMIT-Gender-Recognition/
+│
+├── app.py                  # 🚀 Ana Uygulama: Streamlit arayüzünü, model yükleyiciyi ve canlı ses işleme (DSP) motorunu barındırır.
+│
+├── prepare_data.py         # 🛠️ Test Verisi Scripti: Senaryo 2 testi için YouTube'dan (Steve Jobs, Emma Watson vb.) veri indirir, işler ve 'scenario2_final.wav' dosyasını oluşturur.
+│
+├── best_model_ecapa.pth    # 🧠 Model Dosyası: TIMIT üzerinde 15 Epoch boyunca eğitilmiş, en yüksek doğruluğa (%98.81) sahip ECAPA-TDNN ağırlıkları.
+│
+├── requirements.txt        # 📦 Bağımlılıklar: Projenin çalışması için gerekli tüm Python kütüphanelerini listeler (pip install -r ile kullanılır).
+│
+├── ffmpeg.exe              # ⚙️ Ses Motoru: (Windows Kullanıcıları İçin) Ses dönüştürme ve işleme kütüphanesi. Linux/Mac'te terminalden kurulur.
+│
+├── README.md               # 📄 Dokümantasyon: Proje kurulumu, mimarisi, kullanım adımları ve performans metriklerini içerir.
+│
+└── assets/                 # 📊 Görsel Varlıklar: README dosyasında kullanılan analiz grafikleri ve model metrikleri.
+    ├── confusion_matrix.png    # Test seti hata analizi
+    ├── data_distribution.png   # Veri seti sınıf dağılımı
+    ├── accuracy_curve.png      # Eğitim doğruluk eğrisi
+    └── waveform_sample.png     # Sinyal örneği
+```
 
 ---
 
@@ -19,7 +49,7 @@ TIMIT veri seti doğası gereği dengesizdir (%70 Erkek, %30 Kadın). Bu durum, 
   <img src="assets/duration_dist.png" width="45%" alt="Süre Histogramı">
 </p>
 
-*Grafik 1: Eğitim ve Test setlerindeki cinsiyet dağılımı. Grafik 2: Ses dosyalarının süre histogramı (Genellikle 3-4 saniye aralığında yoğunlaşmıştır).*
+*Grafik 1: Eğitim ve Test setlerindeki cinsiyet dağılımı. Grafik 2: Ses dosyalarının süre histogramı.*
 
 ---
 
@@ -93,8 +123,5 @@ pip install -r requirements.txt
 ```bash
 streamlit run app.py
 ```
-
----
-
 
 
