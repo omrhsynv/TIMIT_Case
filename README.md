@@ -2,7 +2,6 @@
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-red?style=for-the-badge&logo=pytorch)
-![Status](https://img.shields.io/badge/Performans-%%98.81_Accuracy-success?style=for-the-badge)
 
 TIMIT veri seti üzerinde eğitilmiş, gürültüye dayanıklı **ECAPA-TDNN** mimarisini kullanan uçtan uca bir ses analiz sistemidir.
 
@@ -99,3 +98,4 @@ streamlit run app.py
 
 ## 👨‍💻 Geliştirici Notları
 Bu proje, **[Adınız Soyadınız]** tarafından Case Study kapsamında; veri ön işleme, model eğitimi, hiperparametre optimizasyonu ve gerçek zamanlı dağıtım (deployment) aşamalarını kapsayacak şekilde geliştirilmiştir.
+
