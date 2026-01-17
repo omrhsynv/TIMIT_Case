@@ -96,6 +96,5 @@ streamlit run app.py
 
 ---
 
-## 👨‍💻 Geliştirici Notları
-Bu proje, **[Adınız Soyadınız]** tarafından Case Study kapsamında; veri ön işleme, model eğitimi, hiperparametre optimizasyonu ve gerçek zamanlı dağıtım (deployment) aşamalarını kapsayacak şekilde geliştirilmiştir.
+
 
